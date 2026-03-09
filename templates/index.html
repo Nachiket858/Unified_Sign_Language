@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Unified Sign Language Detection - Real-time ASL and ISL recognition powered by AI">
+    <title>SignVerse — Unified Sign Language Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <div class="navbar-logo">SV</div>
+            <span class="navbar-title">SignVerse</span>
+        </div>
+        <div class="navbar-status">
+            <div class="status-indicator">
+                <span class="status-dot active" id="stream-dot"></span>
+                <span id="stream-status">Live</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Main Content -->
+    <div class="main-container">
+
+        <!-- Hero -->
+        <section class="hero-section">
+            <h1 class="hero-title">Unified Sign Language Detection</h1>
+            <p class="hero-subtitle">Real-time hand gesture recognition for both American and Indian Sign Language.
+                Switch modes instantly.</p>
+        </section>
+
+        <!-- Mode Switcher -->
+        <div class="mode-switcher">
+            <button class="mode-btn active" id="mode-asl" onclick="switchMode('ASL')">
+                <span>🇺🇸 ASL Mode</span>
+            </button>
+            <div class="mode-divider"></div>
+            <button class="mode-btn" id="mode-isl" onclick="switchMode('ISL')">
+                <span>🇮🇳 ISL Mode</span>
+            </button>
+        </div>
+
+        <!-- Content Grid -->
+        <div class="content-grid">
+
+            <!-- Left: Video + Sentence -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <span>📷</span> Live Detection
+                    </h2>
+                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                        <span class="card-badge badge-live">● Live</span>
+                        <span class="card-badge badge-asl" id="mode-badge">ASL</span>
+                    </div>
+                </div>
+
+                <div class="video-container">
+                    <img id="video-feed" class="video-feed" src="" alt="Sign Language Detection Stream">
+                    <div class="video-overlay">
+                        <div class="prediction-display">
+                            <div>
+                                <div class="prediction-label">Detected Sign</div>
+                                <div class="prediction-value" id="prediction-value">—</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sentence-panel">
+                    <div class="sentence-label">Accumulated Sentence</div>
+                    <div class="sentence-text" id="sentence-text">
+                        <span class="placeholder">Start signing to build a sentence...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Sidebar -->
+            <aside class="sidebar">
+
+                <!-- Controls -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3 class="card-title"><span>🎮</span> Controls</h3>
+                    </div>
+                    <div class="controls-grid">
+                        <button class="ctrl-btn btn-speak" onclick="speakText()">
+                            <span class="icon">🔊</span>
+                            Speak Text
+                        </button>
+                        <button class="ctrl-btn btn-clear" onclick="clearSentence()">
+                            <span class="icon">🗑️</span>
+                            Clear All
+                        </button>
+                        <button class="ctrl-btn btn-space" onclick="addSpace()">
+                            <span class="icon">⎵</span>
+                            Add Space
+                        </button>
+                        <button class="ctrl-btn btn-delete" onclick="deleteLast()">
+                            <span class="icon">⌫</span>
+                            Delete
+                        </button>
+                        <button class="ctrl-btn btn-ai full-width" onclick="correctWithAI()">
+                            <span class="icon">✨</span>
+                            Correct with AI
+                        </button>
+                        <button class="ctrl-btn btn-stop full-width" onclick="toggleStream()">
+                            <span class="icon">⏯️</span>
+                            Start / Stop Stream
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Gesture Guide -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3 class="card-title"><span>✋</span> Gesture Guide</h3>
+                    </div>
+                    <img id="gesture-guide" class="gesture-guide-img"
+                        src="{{ url_for('static', filename='images/asl_signs.jpeg') }}" alt="ASL Gesture Reference"
+                        onclick="openGestureGuide()">
+                    <!-- ISL Special Keys (hidden by default) -->
+                    <div class="special-keys" id="isl-keys-info" style="display:none;">
+                        <div class="key-info">
+                            <span class="key-badge">1</span> adds Space
+                        </div>
+                        <div class="key-info">
+                            <span class="key-badge">2</span> deletes last Word
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Model Status -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3 class="card-title"><span>⚙️</span> System Status</h3>
+                    </div>
+                    <div class="model-status-grid">
+                        <div class="model-status-item">
+                            <span class="model-name">ASL Model</span>
+                            <span class="model-badge loaded" id="asl-model-status">Checking...</span>
+                        </div>
+                        <div class="model-status-item">
+                            <span class="model-name">ISL Model</span>
+                            <span class="model-badge loaded" id="isl-model-status">Checking...</span>
+                        </div>
+                        <div class="model-status-item">
+                            <span class="model-name">TTS Engine</span>
+                            <span class="model-badge loaded" id="tts-status">Checking...</span>
+                        </div>
+                        <div class="model-status-item">
+                            <span class="model-name">Gemini AI</span>
+                            <span class="model-badge loaded" id="gemini-status">Checking...</span>
+                        </div>
+                    </div>
+                </div>
+
+            </aside>
+
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2025 SignVerse — Unified Sign Language Detection</p>
+            <p>Built by <strong>Nachiket Shinde</strong> | KodeNeurons</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>
