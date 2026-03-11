@@ -1,4 +1,4 @@
-# SignVerse — Unified Sign Language Detection
+# SignEase — Unified Sign Language Detection
 
 A premium real-time **Sign Language Recognition System** that supports both **American Sign Language (ASL)** and **Indian Sign Language (ISL)** in a single Flask application. Switch between modes instantly with live webcam detection, sentence building, and text-to-speech.
 

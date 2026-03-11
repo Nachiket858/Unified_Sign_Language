@@ -21,6 +21,8 @@ import time
 import numpy as np
 import warnings
 import threading
+import subprocess
+import sys
 
 # Suppress warnings
 warnings.filterwarnings('ignore')
@@ -484,17 +486,37 @@ def clear_sentence():
 
 @app.route('/speak', methods=['POST'])
 def speak():
-    if tts_engine and accumulated_sentence.strip():
-        def _speak():
-            with tts_lock:
-                try:
-                    tts_engine.say(accumulated_sentence)
-                    tts_engine.runAndWait()
-                except Exception as e:
-                    print(f"TTS error: {e}")
-        threading.Thread(target=_speak, daemon=True).start()
-        return jsonify({"status": "success"})
-    return jsonify({"status": "error", "message": "Nothing to speak"})
+    if not accumulated_sentence.strip():
+        return jsonify({"status": "error", "message": "Nothing to speak"})
+    text_to_speak = accumulated_sentence  # Capture current value
+
+    def _speak():
+        with tts_lock:
+            try:
+                # Spawn a completely separate Python process each time.
+                # pyttsx3.init() on Windows returns a CACHED engine singleton
+                # from its internal _activeEngines dict, so even calling init()
+                # again gives back the broken stuck engine from before.
+                # A fresh subprocess bypasses this entirely and always works.
+                script = (
+                    "import pyttsx3; "
+                    "e = pyttsx3.init(); "
+                    "e.setProperty('rate', 150); "
+                    f"e.say({repr(text_to_speak)}); "
+                    "e.runAndWait()"
+                )
+                # CREATE_NO_WINDOW = 0x08000000 prevents a console flash on Windows
+                flags = 0x08000000 if sys.platform == 'win32' else 0
+                subprocess.run(
+                    [sys.executable, "-c", script],
+                    timeout=30,
+                    creationflags=flags
+                )
+            except Exception as e:
+                print(f"TTS error: {e}")
+
+    threading.Thread(target=_speak, daemon=True).start()
+    return jsonify({"status": "success"})
 
 
 @app.route('/stop', methods=['POST'])

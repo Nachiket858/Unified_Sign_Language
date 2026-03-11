@@ -1,7 +1,7 @@
 @echo off
-echo ============================================
-echo   SignVerse - Unified Sign Language Detection
-echo ============================================
+echo =================================================
+echo   SignVerse - Unified Sign Language Detection    
+echo =================================================
 echo.
 
 :: Activate the conda environment and run
